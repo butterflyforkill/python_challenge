@@ -11,3 +11,10 @@ class BookingBase(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class BookingExtend(BaseModel):
+    number_of_nights: int
+
+class BookingResponse(BookingBase):
+    id: int

@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.database import Base
 from app.main import app, get_db
+from string import printable
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
@@ -139,3 +140,99 @@ def test_different_guest_same_unit_booking_different_date(test_db):
     )
     assert response.status_code == 400, response.text
     assert response.json()['detail'] == 'For the given check-in date, the unit is already occupied'
+
+
+@pytest.mark.freeze_time('2025-06-12')
+def test_extend_booking_valid(test_db):
+    # Create a booking
+    response = client.post(
+        "/api/v1/booking",
+        json=GUEST_A_UNIT_1
+    )
+    assert response.status_code == 200, response.text
+
+    booking_id = response.json()['id']
+
+    # Extend to 7 nights
+    response = client.put(
+        f"/api/v1/booking/{booking_id}/extend",
+        json={"number_of_nights": 7}
+    )
+    assert response.status_code == 200, f"Failed with response: {response.text}"
+    assert response.json()['id'] == booking_id
+    assert response.json()['number_of_nights'] == 7
+    assert response.json()['guest_name'] == 'GuestA'
+    assert response.json()['unit_id'] == '1'
+    assert response.json()['check_in_date'] == '2025-06-12'
+
+
+@pytest.mark.freeze_time('2023-05-21')
+def test_extend_booking_invalid_same_nights(test_db):
+    response = client.post(
+        "/api/v1/booking",
+        json=GUEST_A_UNIT_1
+    )
+    assert response.status_code == 200, response.text
+    booking_id = response.json()['id']
+
+    response = client.put(
+        f"/api/v1/booking/{booking_id}/extend",
+        json={"number_of_nights": 5}
+    )
+    assert response.status_code == 400, response.text
+    assert response.json()['detail'] == 'Number of nights cannot be less than or equal to the existing booking'
+
+
+@pytest.mark.freeze_time('2023-05-21')
+def test_extend_booking_invalid_fewer_nights(test_db):
+    response = client.post(
+        "/api/v1/booking",
+        json=GUEST_A_UNIT_1
+    )
+    assert response.status_code == 200, response.text
+    booking_id = response.json()['id']
+
+    response = client.put(
+        f"/api/v1/booking/{booking_id}/extend",
+        json={"number_of_nights": 3}
+    )
+    assert response.status_code == 400, response.text
+    assert response.json()['detail'] == 'Number of nights cannot be less than or equal to the existing booking'
+
+
+@pytest.mark.freeze_time('2023-05-21')
+def test_extend_booking_invalid_overlap(test_db):
+    response = client.post(
+        "/api/v1/booking",
+        json=GUEST_A_UNIT_1
+    )
+    assert response.status_code == 200, response.text
+    booking_id = response.json()['id']
+
+    response = client.post(
+        "/api/v1/booking",
+        json={
+            'unit_id': '1',
+            'guest_name': 'GuestB',
+            'check_in_date': (datetime.date.today() + datetime.timedelta(days=6)).strftime('%Y-%m-%d'),
+            'number_of_nights': 5
+        }
+    )
+    assert response.status_code == 200, response.text
+
+    response = client.put(
+        f"/api/v1/booking/{booking_id}/extend",
+        json={"number_of_nights": 7}
+    )
+    assert response.status_code == 400, response.text
+    assert response.json()['detail'] == 'For the given check-in date, the unit is already occupied'
+
+
+@pytest.mark.freeze_time('2023-05-21')
+def test_extend_booking_not_found(test_db):
+    response = client.put(
+        "/api/v1/booking/999/extend",
+        json={"number_of_nights": 7}
+    )
+    assert response.status_code == 400, response.text
+    assert response.json()['detail'] == 'Booking not found'
