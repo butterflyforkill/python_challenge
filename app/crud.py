@@ -1,5 +1,4 @@
-import re
-from datetime import date, timedelta
+from datetime import timedelta
 from typing import Tuple, Optional
 
 from sqlalchemy.orm import Session
@@ -36,7 +35,6 @@ def extend_booking(db: Session, booking_id: int, number_of_nights: int) -> model
     if not existing_booking:
         raise UnableToBook("Booking not found")
 
-    print("!!!!!!!",existing_booking)
 
     # Check the new number of nights
     if number_of_nights <= existing_booking.number_of_nights:
@@ -49,8 +47,6 @@ def extend_booking(db: Session, booking_id: int, number_of_nights: int) -> model
         check_in_date=existing_booking.check_in_date,
         number_of_nights=number_of_nights
     )
-
-    print("!!!!!!!",updated_booking)
 
     # Check if the new booking overlaps with any existing bookings
     possible, message = is_booking_possible(db, updated_booking, booking_id)
