@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environments
+venv/
+.venv/
+
+# uv
+.python-version
+
+# Database
+data/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDEs – JetBrains
+.idea/
+
+# IDEs – VS Code
+.vscode/
+
+# OS – macOS
+.DS_Store
+
+# OS – Windows
+Thumbs.db

@@ -1,0 +1,14 @@
+services:
+  api:
+    build:
+      context: .
+    container_name: fastapi-application
+    working_dir: /code # prevents Docker Compose from mounting over WORKDIR by default
+    volumes:
+      - ./app:/code/app
+      - ./data:/code/data
+    environment:
+      PORT: 8000
+    ports:
+      - "8000:8000"
+    restart: "no"
