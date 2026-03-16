@@ -57,3 +57,5 @@ docker compose run --rm api uv run pytest
 ```
 
 API docs: http://localhost:8000/docs
+
+💡 Implementation Details: For a deep dive into the bug fix and architectural decisions, please see **NOTES.md**.
